@@ -17,6 +17,9 @@
  * or:
  *		$db = new Db('theHost','theUser','thePassword','theDatabase');
  *
+ * Optional (clean received data):
+ * 		$db -> clean(POST or GET string)
+ *
  * Workflow:
  * 		$db -> connect();
  *		$valid  = $db -> database(); or $db -> database('theDatabase');
@@ -162,6 +165,25 @@ class Db {
 	 */
 	public function database1($database) {
 		return mysql_select_db($database) or die('Could not select a database.');
+	}
+
+	/** 
+	 *	Cleam GET or POST strings to avoid SQL injection
+	 *	@param string $param GET or POST parameter
+	 *	@return string cleaned parameter
+	 */
+	public function clean($param) {
+		if(get_magic_quotes_gpc()) {
+		    $param = stripslashes($param);
+		}
+		if (phpversion() >= '4.3.0') {
+			$badWords = array("/delete/i", "/update/i","/union/i","/insert/i","/drop/i","/http/i","/--/i");
+			$param = preg_replace($badWords, "", $param);
+		    $param = mysql_real_escape_string($param);
+		} else {
+	    	$param = mysql_escape_string($param);
+	  	}
+	  	return $param;
 	}
 
 	/** 
